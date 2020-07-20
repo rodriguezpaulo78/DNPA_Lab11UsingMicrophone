@@ -41,7 +41,7 @@
         android:drawablePadding="8dp"
         android:text="Iniciar Grabación"
         android:textColor="@android:color/white"
-        app:backgroundTint="#4CAF50"
+        android:backgroundTint="#4CAF50"
         tools:layout_editor_absoluteX="156dp"
         tools:layout_editor_absoluteY="393dp" />
 
@@ -51,22 +51,20 @@
         android:layout_height="50dp"
         android:layout_gravity="center"
         android:layout_marginBottom="100px"
-        android:background="@drawable/boton_redondo"
-        android:text="Detener Grabación"
-        android:textColor="@android:color/white"
-        app:backgroundTint="#F44336"
         tools:layout_editor_absoluteX="156dp"
-        tools:layout_editor_absoluteY="456dp" />
+        tools:layout_editor_absoluteY="393dp"
+        android:drawablePadding="8dp"
+        android:background="@drawable/boton_redondo2"
+        android:text="Detener Grabación"
+         />
 
     <Button
-        android:id="@+id/button3"
-        android:layout_width="196dp"
-        android:layout_height="68dp"
+        android:id="@+id/btnPlay"
+        android:layout_width="198dp"
+        android:layout_height="88dp"
         android:layout_gravity="center"
         android:layout_marginBottom="150dp"
         android:layout_weight="1"
         android:background="@drawable/boton_redondo"
-        android:text="Reproducir Audio"
-        android:textColor="@android:color/white"
-        app:backgroundTint="#000000" />
+        android:text="Reproducir Audio" />
 </LinearLayout>
