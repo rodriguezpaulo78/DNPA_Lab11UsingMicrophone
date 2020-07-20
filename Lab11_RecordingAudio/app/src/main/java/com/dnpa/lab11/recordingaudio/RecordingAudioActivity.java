@@ -3,7 +3,9 @@ package com.dnpa.lab11.recordingaudio;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioRecord;
+import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +14,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class RecordingAudioActivity extends AppCompatActivity {
@@ -74,8 +80,8 @@ public class RecordingAudioActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    Toast.makeText(getApplicationContext(), "Playing Audio", Toast.LENGTH_LONG).show();
-
+                    Toast.makeText(getApplicationContext(), "Playing Recording", Toast.LENGTH_LONG).show();
+                    playingRecording("/sdcard/Lab11_recording.pcm");
                 } catch (Exception e) {
                     // make something
                 }
@@ -106,8 +112,42 @@ public class RecordingAudioActivity extends AppCompatActivity {
         // Starts recording from the AudioRecord instance.
         recorder.startRecording();
         isRecording = true;
-
+        recordingThread = new Thread(new Runnable() {
+            public void run() {
+                //Writing data into a file
+                writeAudioDataToFile();
+            }
+        }, "AudioRecorder Thread");
         recordingThread.start();
+    }
+
+    private void writeAudioDataToFile() {
+        //Write the output audio in byte
+        String filePath = "/sdcard/Lab11_recording.pcm";
+        byte saudioBuffer[] = new byte[bufferSize];
+
+        FileOutputStream os = null;
+        try {
+            os = new FileOutputStream(filePath);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        while (isRecording) {
+            // gets the voice output from microphone to byte format
+            recorder.read(saudioBuffer, 0, bufferSize);
+            try {
+                //  writes the data to file from buffer stores the voice buffer
+                os.write(saudioBuffer, 0, bufferSize);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void stopRecording() throws IOException {
@@ -121,5 +161,40 @@ public class RecordingAudioActivity extends AppCompatActivity {
             recordingThread = null;
         }
     }
-    
+
+    private void playingRecording(String filePath) throws IOException{
+        // We keep temporarily filePath globally as we have only two sample sounds now..
+        if (filePath==null)
+            return;
+
+        //Reading the file..
+        File file = new File(filePath); // for ex. path= "/sdcard/samplesound.pcm" or "/sdcard/samplesound.wav"
+        byte[] byteData = new byte[(int) file.length()];
+        Log.d(TAG, (int) file.length()+"");
+
+        FileInputStream in = null;
+        try {
+            in = new FileInputStream( file );
+            in.read( byteData );
+            in.close();
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        // Set and push to audio track..
+        int intSize = android.media.AudioTrack.getMinBufferSize(RECORDER_SAMPLERATE, RECORDER_CHANNELS_OUT, RECORDER_AUDIO_ENCODING);
+        Log.d(TAG, intSize+"");
+
+        AudioTrack at = new AudioTrack(AudioManager.STREAM_MUSIC, RECORDER_SAMPLERATE, RECORDER_CHANNELS_OUT, RECORDER_AUDIO_ENCODING, intSize, AudioTrack.MODE_STREAM);
+        if (at!=null) {
+            at.play();
+            // Write the byte array to the track
+            at.write(byteData, 0, byteData.length);
+            at.stop();
+            at.release();
+        }
+        else
+            Log.d(TAG, "audio track is not initialised ");
+    }
+
 }
